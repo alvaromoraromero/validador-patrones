@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validador patrones</title>
+    <link rel="stylesheet" href="index.css">
+    <script type="text/javascript" src="index.js"></script>
+</head>
+<body>
+    <h1>Validador patrones</h1>
+    <p>Se han validado un total de <span id="total">0</span> patrones. (<span id="totalV">0</span> ✅ | <span id="totalF">0</span> ❌)</p>
+    <form onsubmit="return validarForm();">
+        <div><input checked type="radio" name="tipo" id="t_unico" value="patron"><label for="t_unico">Patrón único</label></div>
+        <div><input type="radio" name="tipo" id="t_rango" value="patron_rango"><label for="t_rango">Rango de patrones</label></div>
+        <div class="tipogrp" id="patron"><input required type="number" name="patron" placeholder="Patrón"></div>
+        <div class="tipogrp" id="patron_rango" style="display: none;">
+            <input type="number" name="patron_rango_inicio" id="patron_rango_inicio" placeholder="Inicio rango patrón">
+            <input type="number" name="patron_rango_fin" id="patron_rango_fin" placeholder="Fin rango patrón">
+        </div>
+        <div><button>Check</button></div>
+    </form>
+    <div id="patrones"></div>
+</body>
+</html>
