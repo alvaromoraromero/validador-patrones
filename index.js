@@ -33,6 +33,9 @@ function alternarMotivos() {
     document.querySelectorAll('#patrones > p span.motivo').forEach(span => {
         span.style.display = document.getElementById('motivos').checked ? '' : 'none';
     });
+    document.querySelectorAll('#patrones > p span.conflicto').forEach(span => {
+        span.style.textDecorationLine = document.getElementById('motivos').checked ? 'spelling-error' : 'none';
+    });
 }
 
 async function validarForm() {
@@ -145,7 +148,7 @@ function pintarPatron(patron) {
             spanMotivo.style.display = document.getElementById('motivos').checked ? '' : 'none';
 
             const p = document.createElement('p');
-            p.innerHTML = `<span>${patron.replaceAll(resultado.conflicto, `<span class="conflicto">${resultado.conflicto}</span>`)} ${resultado.valido ? '✅' : '❌'}</span>`;
+            p.innerHTML = `<span>${patron.replaceAll(resultado.conflicto, `<span class="conflicto" style="text-decoration-line: ${document.getElementById('motivos').checked ? 'spelling-error' : 'none'};">${resultado.conflicto}</span>`)} ${resultado.valido ? '✅' : '❌'}</span>`;
             p.append(spanMotivo);
             p.className = resultado.valido ? 'valido' : 'invalido';
             p.style.display = (!resultado.valido && mostrar=="1" || resultado.valido && mostrar=="2") ? 'none' : '';

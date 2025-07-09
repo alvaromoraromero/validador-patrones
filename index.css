@@ -51,12 +51,6 @@ hr {
     border-top: solid 1px gray;
 }
 
-#patrones p span.conflicto {
-    text-decoration: underline;
-    text-decoration-color: red;
-    border-bottom: 2px solid red;
-}
-
 #patrones p span.salto {
     text-decoration: line-through;
     text-decoration-color: red;
