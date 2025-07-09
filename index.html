@@ -21,7 +21,7 @@
             <div class="tipogrp" id="patron"><input required type="number" name="patron" placeholder="Patrón"></div>
             <div class="tipogrp" id="patron_rango" style="display: none; gap: 7px;">
                 <div><input type="number" name="patron_rango_inicio" id="patron_rango_inicio" placeholder="Inicio rango patrón"></div>
-                <div>-</div>
+                <div class="separador">-</div>
                 <div><input type="number" name="patron_rango_fin" id="patron_rango_fin" placeholder="Fin rango patrón"></div>
             </div>
             <div><button id="comprobar">✔️ Comprobar</button></div>
@@ -31,6 +31,7 @@
             <div><input checked type="radio" name="mostrar" id="mostrarTodo" value="0"><label for="mostrarTodo">Mostrar todo (<span id="mostrarTodoSpan">0</span>)</label></div>
             <div><input type="radio" name="mostrar" id="mostrarValidos" value="1"><label for="mostrarValidos">Mostrar válidos (<span id="mostrarValidosSpan">0</span>)</label></div>
             <div><input type="radio" name="mostrar" id="mostrarInvalidos" value="2"><label for="mostrarInvalidos">Mostrar no válidos (<span id="mostrarInvalidosSpan">0</span>)</label></div>
+            <div><input type="checkbox" name="motivos" id="motivos" onchange="alternarMotivos()"><label for="motivos">Mostrar motivos</label></div>
         </div>
     </form>
     <div id="patrones"></div>

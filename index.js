@@ -29,6 +29,12 @@ window.onload = () => {
     });
 }
 
+function alternarMotivos() {
+    document.querySelectorAll('#patrones > p span.motivo').forEach(span => {
+        span.style.display = document.getElementById('motivos').checked ? '' : 'none';
+    });
+}
+
 async function validarForm() {
     document.getElementById('resetAll').disabled = document.getElementById('comprobar').disabled = 1;
     document.body.style.cursor = 'progress';
@@ -83,7 +89,7 @@ function resetAll() {
 
 function esPatronValido(patron) {
     if (!/^[1-9]{4,9}$/.test(patron)) {
-        return false; // solo cifras 1-9, longitud 4-9
+        return {valido: false, motivo: 'Solo se pueden usar cifras del 1 al 9, con una longitud de entre 4 y 9' };
     }
 
     const visitados = new Set();
@@ -104,39 +110,45 @@ function esPatronValido(patron) {
     for (let i = 1; i < patron.length; i++) {
         const actual = patron[i];
         if (visitados.has(actual)) {
-            return false; // no se puede repetir
+            return { valido: false, motivo: 'No se puede repetir que ya se ha visitado' };
         }
 
         const clave = `${anterior},${actual}`;
         if (saltos[clave] && !visitados.has(String(saltos[clave]))) {
-            return false; // no se puede saltar el número intermedio sin visitarlo
+            return { valido: false, motivo: 'No se puede saltar un número intermedio sin visitarlo'};
         }
 
         visitados.add(actual);
         anterior = actual;
     }
 
-    return true;
+    return { valido: true, motivo: 'OK' };
 }
 
 function pintarPatron(patron) {
     const velocidad = parseInt(document.getElementById('velocidad').value, 10);
     return new Promise(resolve => {
         setTimeout(() => {
-            const valido = esPatronValido(patron);
+            const resultado = esPatronValido(patron);
             document.getElementById('totalInicio').textContent = ++RECUENTO.inicio;
             document.getElementById('totalFin').textContent = RECUENTO.fin;
             document.getElementById('mostrarTodoSpan').textContent = RECUENTO.inicio;
-            document.getElementById(valido ? 'totalV' : 'totalF').textContent = ++RECUENTO[valido ? 'valido' : 'invalido'];
+            document.getElementById(resultado.valido ? 'totalV' : 'totalF').textContent = ++RECUENTO[resultado.valido ? 'valido' : 'invalido'];
             document.getElementById('mostrarValidosSpan').textContent = RECUENTO.valido;
             document.getElementById('mostrarInvalidosSpan').textContent = RECUENTO.invalido;
 
             const mostrar = document.querySelector('input[name="mostrar"]:checked').value;
 
+            const spanMotivo = document.createElement('span');
+            spanMotivo.className = 'motivo';
+            spanMotivo.textContent = `(${resultado.motivo})`;
+            spanMotivo.style.display = document.getElementById('motivos').checked ? '' : 'none';
+
             const p = document.createElement('p');
-            p.textContent = `${patron} ${valido ? '✅' : '❌'}`;
-            p.className = valido ? 'valido' : 'invalido';
-            p.style.display = (!valido && mostrar=="1" || valido && mostrar=="2") ? 'none' : '';
+            p.textContent = `${patron} ${resultado.valido ? '✅' : '❌'}`;
+            p.append(spanMotivo);
+            p.className = resultado.valido ? 'valido' : 'invalido';
+            p.style.display = (!resultado.valido && mostrar=="1" || resultado.valido && mostrar=="2") ? 'none' : '';
             document.getElementById('patrones').prepend(p);
 
             if (velocidad > 0) resolve();

@@ -21,3 +21,33 @@ form > div {
 hr {
     margin: .5em 0;
 }
+
+#patrones {
+    overflow-x: auto;
+    max-height: 50vh;
+    margin: 10px;
+    border: solid 2px gray;
+}
+
+#patrones p {
+    display: flex;
+    gap: 10px;
+    margin: 0;
+    padding: .5em 15px;
+    border-bottom: solid 1px gray;
+    border-top: solid 1px gray;
+}
+
+#patrones p span.motivo {
+    color: gray;
+}
+
+@media(orientation: portrait) {
+    div.tipogrp {
+        flex-direction: column;
+    }
+
+    div.tipogrp > div.separador {
+        display: none;
+    }
+}
