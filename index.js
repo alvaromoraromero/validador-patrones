@@ -1,15 +1,15 @@
-const MOSTRAR = 0; // 0: Todo.   1: Sólo válidos.   2: Sólo inválidos
-const RECUENTO = { // No tocar
-    total: 0,
-    valido: 0,
-    invalido: 0,
-}
+const COMPROBADOS = new Set();
+const RECUENTO = {};
 window.onload = () => {
+    document.getElementById('velocidad').addEventListener('input', function() {
+        document.getElementById('velocidadSpan').textContent = this.value==0 ? 'lo más rápido posible' : `esperar ${this.value}ms entre cada comprobación`;
+    });
     document.querySelectorAll('input[name="tipo"]').forEach(radio => {
         radio.addEventListener('change', () => {
             document.querySelectorAll('.tipogrp').forEach(div => {
                 div.style.display = 'none';
                 div.querySelectorAll('input').forEach(input => {
+                    input.value = '';
                     input.required = '';
                 });
             })
@@ -20,24 +20,65 @@ window.onload = () => {
             });
         });
     });
+    document.querySelectorAll('input[name="mostrar"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            document.querySelectorAll('#patrones > p').forEach(p => p.style.display = radio.value=="0" ? '' : 'none');
+            if (radio.value=="0") return;
+            document.querySelectorAll(`#patrones .${radio.value=="1" ? '' : 'in'}valido`).forEach(p => p.style.display = '');
+        });
+    });
 }
 
-function validarForm() {
+async function validarForm() {
+    document.getElementById('resetAll').disabled = document.getElementById('comprobar').disabled = 1;
+    document.body.style.cursor = 'progress';
+    if (!RECUENTO.fin) resetAll();
+    RECUENTO.inicio = RECUENTO.fin;
     switch (document.querySelector('input[name="tipo"]:checked').value) {
         case 'patron_rango':
-            const inicio = document.getElementById('patron_rango_inicio').value;
-            const fin = document.getElementById('patron_rango_fin').value;
+            const inicio = parseInt(document.getElementById('patron_rango_inicio').value, 10);
+            const fin = parseInt(document.getElementById('patron_rango_fin').value, 10);
+
+            RECUENTO.fin += fin-inicio;
+            if (RECUENTO.fin++ < 0) break;
+
             for (let i = inicio; i <= fin; i++) {
-                pintarPatron(`${i}`);
+                if (COMPROBADOS.has(i)) {
+                    RECUENTO.fin--;
+                    continue;
+                }
+                else COMPROBADOS.add(i);
+                await pintarPatron(`${i}`);
             }
             break;
-    
-        default:
-            pintarPatron(document.querySelector('input[name="patron"]').value);
-            break;
-    } 
 
-    return false;
+        default:
+            const i = parseInt(document.querySelector('input[name="patron"]').value, 10);
+            if (COMPROBADOS.has(i)) break;
+            else COMPROBADOS.add(i);
+            RECUENTO.fin++;
+            await pintarPatron(`${i}`);
+            break;
+    }
+    document.getElementById('resetAll').disabled = document.getElementById('comprobar').disabled = '';
+    document.body.style.cursor = '';
+    document.querySelectorAll('.tipogrp').forEach(div => div.querySelectorAll('input').forEach(input => input.value = ''));
+}
+
+function resetAll() {
+    document.getElementById('resetAll').disabled = 1;
+    COMPROBADOS.clear();
+    RECUENTO.fin = 0;
+    RECUENTO.valido = 0;
+    RECUENTO.invalido = 0;
+    document.getElementById('totalInicio').textContent = 0;
+    document.getElementById('totalFin').textContent = 0;
+    document.getElementById('totalV').textContent = 0;
+    document.getElementById('totalF').textContent = 0;
+    document.getElementById('mostrarTodoSpan').textContent = 0;
+    document.getElementById('mostrarValidosSpan').textContent = 0;
+    document.getElementById('mostrarInvalidosSpan').textContent = 0;
+    document.getElementById('patrones').innerHTML = '';
 }
 
 function esPatronValido(patron) {
@@ -79,13 +120,25 @@ function esPatronValido(patron) {
 }
 
 function pintarPatron(patron) {
-    const valido = esPatronValido(patron);
-    document.getElementById('total').textContent = ++RECUENTO.total;
-    document.getElementById(valido ? 'totalV' : 'totalF').textContent = ++RECUENTO[valido ? 'valido' : 'invalido'];
+    return new Promise(resolve => {
+        setTimeout(() => {
+            const valido = esPatronValido(patron);
+            document.getElementById('totalInicio').textContent = ++RECUENTO.inicio;
+            document.getElementById('totalFin').textContent = RECUENTO.fin;
+            document.getElementById('mostrarTodoSpan').textContent = RECUENTO.inicio;
+            document.getElementById(valido ? 'totalV' : 'totalF').textContent = ++RECUENTO[valido ? 'valido' : 'invalido'];
+            document.getElementById('mostrarValidosSpan').textContent = RECUENTO.valido;
+            document.getElementById('mostrarInvalidosSpan').textContent = RECUENTO.invalido;
 
-    if (!valido && MOSTRAR==1 || valido && MOSTRAR==2) return;
+            const mostrar = document.querySelector('input[name="mostrar"]:checked').value;
 
-    const p = document.createElement('p');
-    p.textContent = `${patron} ${valido ? '✅' : '❌'}`;
-    document.getElementById('patrones').append(p);
+            const p = document.createElement('p');
+            p.textContent = `${patron} ${valido ? '✅' : '❌'}`;
+            p.className = valido ? 'valido' : 'invalido';
+            p.style.display = (!valido && mostrar=="1" || valido && mostrar=="2") ? 'none' : '';
+            document.getElementById('patrones').prepend(p);
+
+            resolve();
+        }, document.getElementById('velocidad').value);
+    });
 }

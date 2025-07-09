@@ -9,16 +9,29 @@
 </head>
 <body>
     <h1>Validador patrones</h1>
-    <p>Se han validado un total de <span id="total">0</span> patrones. (<span id="totalV">0</span> ✅ | <span id="totalF">0</span> ❌)</p>
-    <form onsubmit="return validarForm();">
-        <div><input checked type="radio" name="tipo" id="t_unico" value="patron"><label for="t_unico">Patrón único</label></div>
-        <div><input type="radio" name="tipo" id="t_rango" value="patron_rango"><label for="t_rango">Rango de patrones</label></div>
-        <div class="tipogrp" id="patron"><input required type="number" name="patron" placeholder="Patrón"></div>
-        <div class="tipogrp" id="patron_rango" style="display: none;">
-            <input type="number" name="patron_rango_inicio" id="patron_rango_inicio" placeholder="Inicio rango patrón">
-            <input type="number" name="patron_rango_fin" id="patron_rango_fin" placeholder="Fin rango patrón">
+    <p><button disabled id="resetAll" onclick="resetAll()">🗑️ Resetear</button> Se han validado un total de <span id="totalInicio">0</span>/<span id="totalFin">0</span> patrones. (<span id="totalV">0</span> ✅ | <span id="totalF">0</span> ❌)</p>
+    <form onsubmit="validarForm(); return false;">
+        <div><label>Velocidad </label><input value="0" min="0" max="1000" step="10" type="range" name="velocidad" id="velocidad"><span id="velocidadSpan">lo más rápido posible</span></div>
+        <hr>
+        <div>
+            <div><input checked type="radio" name="tipo" id="t_unico" value="patron"><label for="t_unico">Patrón único</label></div>
+            <div><input type="radio" name="tipo" id="t_rango" value="patron_rango"><label for="t_rango">Rango de patrones</label></div>
         </div>
-        <div><button>Check</button></div>
+        <div>
+            <div class="tipogrp" id="patron"><input required type="number" name="patron" placeholder="Patrón"></div>
+            <div class="tipogrp" id="patron_rango" style="display: none; gap: 7px;">
+                <div><input type="number" name="patron_rango_inicio" id="patron_rango_inicio" placeholder="Inicio rango patrón"></div>
+                <div>-</div>
+                <div><input type="number" name="patron_rango_fin" id="patron_rango_fin" placeholder="Fin rango patrón"></div>
+            </div>
+            <div><button id="comprobar">✔️ Comprobar</button></div>
+        </div>
+        <hr>
+        <div>
+            <div><input checked type="radio" name="mostrar" id="mostrarTodo" value="0"><label for="mostrarTodo">Mostrar todo (<span id="mostrarTodoSpan">0</span>)</label></div>
+            <div><input type="radio" name="mostrar" id="mostrarValidos" value="1"><label for="mostrarValidos">Mostrar válidos (<span id="mostrarValidosSpan">0</span>)</label></div>
+            <div><input type="radio" name="mostrar" id="mostrarInvalidos" value="2"><label for="mostrarInvalidos">Mostrar no válidos (<span id="mostrarInvalidosSpan">0</span>)</label></div>
+        </div>
     </form>
     <div id="patrones"></div>
 </body>
