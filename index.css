@@ -3,6 +3,10 @@ body {
     margin: 30px;
 }
 
+input {
+    margin: 0;
+}
+
 button:disabled {
     cursor: not-allowed;
 }
@@ -10,7 +14,7 @@ button:disabled {
 form {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 10px;
 }
 
 form div {
@@ -21,6 +25,10 @@ form div {
 
 form > div {
     gap: 25px;
+}
+
+form > div > div {
+    gap: 5px;
 }
 
 hr {
