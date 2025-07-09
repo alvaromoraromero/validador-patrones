@@ -91,9 +91,11 @@ function resetAll() {
 }
 
 function esPatronValido(patron) {
-    if (!/^[1-9]{4,9}$/.test(patron)) {
-        return {valido: false, motivo: 'Solo se pueden usar cifras del 1 al 9, con una longitud de entre 4 y 9', conflicto: [...patron].find(c => !/[1-9]/.test(c)) || '' };
-    }
+    if (typeof patron !== "string") return { valido: false, motivo: 'Formato patrón no válido', conflicto: patron};
+    if (patron.length < 4) return { valido: false, motivo: 'Patrón demasiado corto. Longitud mínima: 4', conflicto: patron};
+    if (patron.length > 9) return { valido: false, motivo: 'Patrón demasiado largo. Longitud máxima: 9', conflicto: patron};
+    const caracteresIlegales = [...patron].find(c => !/[1-9]/.test(c));
+    if (caracteresIlegales) return { valido: false, motivo: "Solo se pueden usar cifras del 1 al 9", conflicto: caracteresIlegales };
 
     const visitados = new Set();
     const saltos = {
@@ -144,7 +146,7 @@ function pintarPatron(patron) {
 
             const spanMotivo = document.createElement('span');
             spanMotivo.className = 'motivo';
-            spanMotivo.innerHTML = resultado.motivo;
+            spanMotivo.innerHTML = `${resultado.motivo}.`;
             spanMotivo.style.display = document.getElementById('motivos').checked ? '' : 'none';
 
             const p = document.createElement('p');
