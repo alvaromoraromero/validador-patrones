@@ -89,7 +89,7 @@ function resetAll() {
 
 function esPatronValido(patron) {
     if (!/^[1-9]{4,9}$/.test(patron)) {
-        return {valido: false, motivo: 'Solo se pueden usar cifras del 1 al 9, con una longitud de entre 4 y 9' };
+        return {valido: false, motivo: 'Solo se pueden usar cifras del 1 al 9, con una longitud de entre 4 y 9', conflicto: [...patron].find(c => !/[1-9]/.test(c)) || '' };
     }
 
     const visitados = new Set();
@@ -110,12 +110,12 @@ function esPatronValido(patron) {
     for (let i = 1; i < patron.length; i++) {
         const actual = patron[i];
         if (visitados.has(actual)) {
-            return { valido: false, motivo: 'No se puede repetir que ya se ha visitado' };
+            return { valido: false, motivo: `No se puede repetir un número que ya se ha visitado`, conflicto: actual };
         }
 
         const clave = `${anterior},${actual}`;
         if (saltos[clave] && !visitados.has(String(saltos[clave]))) {
-            return { valido: false, motivo: 'No se puede saltar un número intermedio sin visitarlo'};
+            return { valido: false, motivo: `No se puede saltar un número intermedio (${anterior}<span class="salto">${saltos[clave]}</span>${actual}) sin visitarlo`, conflicto: `${anterior}${actual}`};
         }
 
         visitados.add(actual);
@@ -141,11 +141,11 @@ function pintarPatron(patron) {
 
             const spanMotivo = document.createElement('span');
             spanMotivo.className = 'motivo';
-            spanMotivo.textContent = `(${resultado.motivo})`;
+            spanMotivo.innerHTML = resultado.motivo;
             spanMotivo.style.display = document.getElementById('motivos').checked ? '' : 'none';
 
             const p = document.createElement('p');
-            p.textContent = `${patron} ${resultado.valido ? '✅' : '❌'}`;
+            p.innerHTML = `<span>${patron.replaceAll(resultado.conflicto, `<span class="conflicto">${resultado.conflicto}</span>`)} ${resultado.valido ? '✅' : '❌'}</span>`;
             p.append(spanMotivo);
             p.className = resultado.valido ? 'valido' : 'invalido';
             p.style.display = (!resultado.valido && mostrar=="1" || resultado.valido && mostrar=="2") ? 'none' : '';
