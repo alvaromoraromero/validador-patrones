@@ -120,6 +120,7 @@ function esPatronValido(patron) {
 }
 
 function pintarPatron(patron) {
+    const velocidad = parseInt(document.getElementById('velocidad').value, 10);
     return new Promise(resolve => {
         setTimeout(() => {
             const valido = esPatronValido(patron);
@@ -138,7 +139,8 @@ function pintarPatron(patron) {
             p.style.display = (!valido && mostrar=="1" || valido && mostrar=="2") ? 'none' : '';
             document.getElementById('patrones').prepend(p);
 
-            resolve();
-        }, document.getElementById('velocidad').value);
+            if (velocidad > 0) resolve();
+        }, velocidad);
+        if (velocidad == 0) resolve();
     });
 }
