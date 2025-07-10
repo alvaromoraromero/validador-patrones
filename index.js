@@ -18,6 +18,10 @@ window.onload = () => {
             selected.querySelectorAll('input').forEach(input => {
                 input.required = '1';
             });
+            console.log(radio.value);
+            if (radio.value == 'patron_dibujo') {
+                dibujarGrid(selected.querySelector('canvas'), 'salmon');
+            }
         });
     });
     document.querySelectorAll('input[name="mostrar"]').forEach(radio => {
@@ -36,6 +40,45 @@ function alternarMotivos() {
     document.querySelectorAll('#patrones > p span.conflicto').forEach(span => {
         span.style.textDecorationLine = document.getElementById('motivos').checked ? 'spelling-error' : 'none';
     });
+}
+
+function cambiarVista(vista) {
+    const motivos = document.getElementById('motivos');
+    motivos.disabled = 1;
+    motivos.checked = false;
+    alternarMotivos();
+
+    const patronesDiv = document.getElementById('patrones');
+    document.querySelectorAll('#patrones > p').forEach(p => {
+        p.style.minWidth = '';
+        p.style.flexDirection = '';
+    });
+    document.querySelectorAll('#patrones > p a.validez').forEach(a => a.style.display = '');
+    document.querySelectorAll('#patrones > p canvas').forEach(c => c.style.display = 'none');
+    patronesDiv.style.flexDirection = '';
+    patronesDiv.style.flexWrap = '';
+    switch (vista.split("_")[0]) {
+        case 'fila':
+            document.querySelectorAll('#patrones > p').forEach(p => p.style.minWidth = 'max-content');
+            break;
+
+        case 'cuadricula':
+            patronesDiv.style.flexWrap = 'wrap';
+            const tipo = vista.split("_")[1];
+            if (tipo == 'columna') patronesDiv.style.flexDirection = 'column';
+            const patron = vista.split("_")[2];
+            if (typeof patron !== 'undefined') {
+                document.querySelectorAll('#patrones > p').forEach(p => p.style.flexDirection = 'column');
+                document.querySelectorAll('#patrones > p a.validez').forEach(a => a.style.display = 'none');
+                document.querySelectorAll('#patrones > p canvas').forEach(c => c.style.display = '');
+            }
+            break;
+    
+        default:
+            motivos.disabled = '';
+            patronesDiv.style.flexDirection = 'column';
+            break;
+    }
 }
 
 async function validarForm() {
@@ -57,8 +100,12 @@ async function validarForm() {
                     continue;
                 }
                 else COMPROBADOS.add(i);
-                await pintarPatron(`${i}`);
+                await agregarPatron(`${i}`);
             }
+            break;
+
+        case 'patron_dibujo':
+            alert('¡Funcionalidad no disponible por el momento!')
             break;
 
         default:
@@ -66,7 +113,7 @@ async function validarForm() {
             if (COMPROBADOS.has(i)) break;
             else COMPROBADOS.add(i);
             RECUENTO.fin++;
-            await pintarPatron(`${i}`);
+            await agregarPatron(`${i}`);
             break;
     }
     document.getElementById('resetAll').disabled = document.getElementById('comprobar').disabled = '';
@@ -130,7 +177,7 @@ function esPatronValido(patron) {
     return { valido: true, motivo: 'OK' };
 }
 
-function pintarPatron(patron) {
+function agregarPatron(patron) {
     const velocidad = parseInt(document.getElementById('velocidad').value, 10);
     return new Promise(resolve => {
         setTimeout(() => {
@@ -143,21 +190,161 @@ function pintarPatron(patron) {
             document.getElementById('mostrarInvalidosSpan').textContent = RECUENTO.invalido;
 
             const mostrar = document.querySelector('input[name="mostrar"]:checked').value;
+            const vista = document.querySelector('select#vista').value.split("_");
+            const cuadricula_patron = (vista[0] == 'cuadricula' && typeof vista[2] !== 'undefined');
+
+            const p = document.createElement('p');
+            const canvas = document.createElement('canvas');
+            canvas.width = 150;
+            canvas.height = 150;
+            canvas.style.zoom = '.4';
+            canvas.style.display = cuadricula_patron ? '' : 'none';
+            p.append(canvas);
+            dibujarPatron(patron, canvas);
+
+            const ojoVisualizar = document.createElement('a');
+            ojoVisualizar.className = 'validez';
+            ojoVisualizar.textContent = '👁️';
+            ojoVisualizar.addEventListener('click', () => mostrarDialogPatron(patron));
+            ojoVisualizar.style.cursor = 'pointer';
+            ojoVisualizar.title = 'Visualizar patrón';
+            ojoVisualizar.style.display = cuadricula_patron ? 'none' : '';
+
+            const spanValidez = document.createElement('span');
+            spanValidez.className = 'validez';
+            spanValidez.textContent = resultado.valido ? '✅' : '❌';
 
             const spanMotivo = document.createElement('span');
             spanMotivo.className = 'motivo';
             spanMotivo.innerHTML = `${resultado.motivo}.`;
             spanMotivo.style.display = document.getElementById('motivos').checked ? '' : 'none';
 
-            const p = document.createElement('p');
-            p.innerHTML = `<span>${patron.replaceAll(resultado.conflicto, `<span class="conflicto" style="text-decoration-line: ${document.getElementById('motivos').checked ? 'spelling-error' : 'none'};">${resultado.conflicto}</span>`)} ${resultado.valido ? '✅' : '❌'}</span>`;
+            const div = document.createElement('div');
+            div.innerHTML = `${patron.replaceAll(resultado.conflicto, `<span class="conflicto" style="text-decoration-line: ${document.getElementById('motivos').checked ? 'spelling-error' : 'none'};">${resultado.conflicto}</span>`)}`;
+            div.append(spanValidez);
+            p.append(ojoVisualizar);
+            p.append(div);
             p.append(spanMotivo);
             p.className = resultado.valido ? 'valido' : 'invalido';
             p.style.display = (!resultado.valido && mostrar=="1" || resultado.valido && mostrar=="2") ? 'none' : '';
+            p.style.flexDirection = cuadricula_patron ? 'column' : '';
             document.getElementById('patrones').prepend(p);
 
             if (velocidad > 0) resolve();
         }, velocidad);
         if (velocidad == 0) resolve();
     });
+}
+
+function mostrarDialogPatron(patron) {
+    const dialogPatron = document.getElementById('dialogPatron');
+    dialogPatron.innerHTML = '';
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 150;
+    canvas.height = 150;
+    dialogPatron.append(canvas);
+    dibujarPatron(patron, canvas);
+
+    dialogPatron.showModal();
+}
+
+function calcularCanvas(canvas) {
+    // radio del círculo
+    const r = 20;
+    // márgenes
+    const marginX = canvas.width / 6;
+    const marginY = canvas.height / 6;
+
+    // calcula las coordenadas de cada posición del patrón
+    const positions = {};
+    for (let i = 1; i <= 9; i++) {
+        const x = marginX + ((i - 1) % 3) * (marginX * 2);
+        const y = marginY + Math.floor((i - 1) / 3) * (marginY * 2);
+        positions[i] = { x, y };
+    }
+    return { r, positions};
+}
+
+function dibujarGrid(canvas, color = "#ccc") {
+    const { r, positions } = calcularCanvas(canvas);
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // dibuja los 9 círculos
+    for (let i = 1; i <= 9; i++) {
+        const { x, y } = positions[i];
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.strokeStyle = "#888";
+        ctx.stroke();
+    }
+}
+
+function dibujarPatron(patron, canvas) {
+    const { r, positions } = calcularCanvas(canvas);
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (!esPatronValido(patron).valido) {
+        dibujarGrid(canvas, 'salmon');
+        return;
+    }
+    patron = patron.split('').map(Number);
+    dibujarGrid(canvas);
+
+    for (let i = 0; i < patron.length; i++) {
+        const { x, y } = positions[patron[i]];
+        ctx.beginPath();
+        ctx.arc(x, y, r-7, 0, Math.PI * 2);
+        ctx.fillStyle = "#3498db";
+        ctx.fill();
+        ctx.strokeStyle = "#2980b9";
+        ctx.stroke();
+    }
+
+    ctx.strokeStyle = "#2980b9";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+
+    for (let i = 0; i < patron.length; i++) {
+        const { x, y } = positions[patron[i]];
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    }
+    ctx.stroke();
+    
+    for (let i = 0; i < patron.length; i++) {
+        const { x, y } = positions[patron[i]];
+        ctx.fillStyle = i===0 ? "#ff0" : "#0ff";
+        // primer punto: dibuja triángulo orientado al siguiente
+        if (i !== patron.length -1) {
+            const next = positions[patron[i+1]];
+
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(Math.atan2(next.y - y, next.x - x)+1.55);
+
+            ctx.beginPath();
+            ctx.moveTo(0, -6);  // punta
+            ctx.lineTo(-6, 6);   // base izquierda
+            ctx.lineTo(6, 6);    // base derecha
+            ctx.closePath();
+
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // último punto: dibuja un cuadrado
+        else {
+            const size = 10;
+            ctx.fillRect(x - size/2, y - size/2, size, size);
+        }
+    }
 }

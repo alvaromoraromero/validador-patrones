@@ -16,6 +16,7 @@
         <div>
             <div><input checked type="radio" name="tipo" id="t_unico" value="patron"><label for="t_unico">Patrón único</label></div>
             <div><input type="radio" name="tipo" id="t_rango" value="patron_rango"><label for="t_rango">Rango de patrones</label></div>
+            <div><input type="radio" name="tipo" id="t_dibujo" value="patron_dibujo"><label for="t_dibujo">Dibujar patrón</label></div>
         </div>
         <div>
             <div class="tipogrp" id="patron"><input required type="number" name="patron" placeholder="Patrón"></div>
@@ -23,6 +24,9 @@
                 <div><input type="number" name="patron_rango_inicio" id="patron_rango_inicio" placeholder="Inicio rango patrón"></div>
                 <div class="separador">-</div>
                 <div><input type="number" name="patron_rango_fin" id="patron_rango_fin" placeholder="Fin rango patrón"></div>
+            </div>
+            <div class="tipogrp" id="patron_dibujo" style="display: none; gap: 7px;">
+                <div><canvas width="150"></canvas></div>
             </div>
             <div><button id="comprobar">✔️ Comprobar</button></div>
         </div>
@@ -32,8 +36,17 @@
             <div><input type="radio" name="mostrar" id="mostrarValidos" value="1"><label for="mostrarValidos">Mostrar válidos (<span id="mostrarValidosSpan">0</span>)</label></div>
             <div><input type="radio" name="mostrar" id="mostrarInvalidos" value="2"><label for="mostrarInvalidos">Mostrar no válidos (<span id="mostrarInvalidosSpan">0</span>)</label></div>
             <div><input type="checkbox" name="motivos" id="motivos" onchange="alternarMotivos()"><label for="motivos">Mostrar motivos</label></div>
+            <div><select name="vista" id="vista" onchange="cambiarVista(this.value)">
+                <option value="lista">📄⬇️ Lista</option>
+                <option value="fila">📄➡️ Fila</option>
+                <option value="cuadricula_columna">📊⬇️ Cuadricula (vertical)</option>
+                <option value="cuadricula_fila">📊➡️ Cuadricula (horizontal)</option>
+                <option value="cuadricula_columna_patron">🖼️⬇️ Cuadricula vertical (con patrones)</option>
+                <option value="cuadricula_fila_patron">🖼️➡️ Cuadricula horizontal (con patrones)</option>
+            </select></div>
         </div>
     </form>
-    <div id="patrones"></div>
+    <dialog id="dialogPatron" closedby="any"></dialog>
+    <div id="patrones" style="flex-direction: column;"></div>
 </body>
 </html>

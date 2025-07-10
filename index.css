@@ -7,7 +7,7 @@ input {
     margin: 0;
 }
 
-button:disabled {
+input:disabled, button:disabled {
     cursor: not-allowed;
 }
 
@@ -36,6 +36,7 @@ hr {
 }
 
 #patrones {
+    display: flex;
     overflow-x: auto;
     max-height: 50vh;
     margin: 10px;
@@ -44,11 +45,12 @@ hr {
 
 #patrones p {
     display: flex;
+    align-items: center;
     gap: 10px;
     margin: 0;
     padding: .5em 15px;
-    border-bottom: solid 1px gray;
-    border-top: solid 1px gray;
+    border: solid 1px gray;
+    min-width: 7vw;
 }
 
 #patrones p span.salto {
@@ -58,6 +60,8 @@ hr {
 
 #patrones p span.motivo {
     color: gray;
+    display: inline-flex;
+    align-items: end;
 }
 
 @media(orientation: portrait) {
