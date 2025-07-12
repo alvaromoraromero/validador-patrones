@@ -20,6 +20,7 @@ form {
 form div {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
 }
 
@@ -29,6 +30,11 @@ form > div {
 
 form > div > div {
     gap: 5px;
+}
+
+form div#patron_dibujo canvas {
+    border: solid 3px gray;
+    padding: 5px;
 }
 
 hr {
@@ -71,5 +77,9 @@ hr {
 
     div.tipogrp > div.separador {
         display: none;
+    }
+
+    #patrones p {
+        min-width: 30vw;
     }
 }

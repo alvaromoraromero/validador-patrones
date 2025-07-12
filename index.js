@@ -1,5 +1,17 @@
 const COMPROBADOS = new Set();
 const RECUENTO = {};
+
+const SALTOS = {
+    '1,3': 2, '3,1': 2,
+    '1,7': 4, '7,1': 4,
+    '3,9': 6, '9,3': 6,
+    '7,9': 8, '9,7': 8,
+    '1,9': 5, '9,1': 5,
+    '3,7': 5, '7,3': 5,
+    '2,8': 5, '8,2': 5,
+    '4,6': 5, '6,4': 5
+};
+
 window.onload = () => {
     document.getElementById('velocidad').addEventListener('input', function() {
         document.getElementById('velocidadSpan').textContent = this.value==0 ? 'lo más rápido posible' : `esperar ${this.value}ms entre cada comprobación`;
@@ -8,6 +20,9 @@ window.onload = () => {
         radio.addEventListener('change', () => {
             document.querySelectorAll('.tipogrp').forEach(div => {
                 div.style.display = 'none';
+                div.style.opacity = '';
+                div.style.position = '';
+                div.style.pointerEvents = '';
                 div.querySelectorAll('input').forEach(input => {
                     input.value = '';
                     input.required = '';
@@ -18,9 +33,98 @@ window.onload = () => {
             selected.querySelectorAll('input').forEach(input => {
                 input.required = '1';
             });
-            console.log(radio.value);
+            const comprobarBtn = document.getElementById('comprobar');
+            comprobarBtn.textContent = '✔️ Comprobar';
             if (radio.value == 'patron_dibujo') {
-                dibujarGrid(selected.querySelector('canvas'), 'salmon');
+                comprobarBtn.textContent = '➕ Agregar';
+                const canvas = selected.querySelector('canvas');
+                dibujarGrid(canvas, 'salmon');
+                const patronDiv = document.getElementById('patron');
+                patronDiv.style.display = '';
+                patronDiv.style.opacity = '0';
+                patronDiv.style.position = 'absolute';
+                patronDiv.style.pointerEvents = 'none';
+                const input = patronDiv.querySelector('input[name="patron"]');
+                input.required = 1;
+
+                let patron = [];             // Secuencia actual
+                let dibujando = false;       // Flag para saber si estamos arrastrando
+                const { r, positions } = calcularCanvas(canvas);
+
+                // redibuja la grid inicial
+                dibujarGrid(canvas);
+
+                canvas.addEventListener("mousedown", (e) => {
+                    patron = [];
+                    dibujando = true;
+                    procesarPosicion(e);
+                });
+
+                canvas.addEventListener("mousemove", (e) => {
+                    if (!dibujando) return;
+                    procesarPosicion(e);
+                });
+
+                canvas.addEventListener("mouseup", () => {
+                    dibujando = false;
+                    input.value = patron.join("");
+                });
+
+                canvas.addEventListener("mouseleave", () => {
+                    if (dibujando) {
+                        dibujando = false;
+                        input.value = patron.join("");
+                    }
+                });
+
+                // Eventos táctiles
+                canvas.addEventListener("touchstart", (e) => {
+                    e.preventDefault(); // evita el scroll
+                    patron = [];
+                    dibujando = true;
+                    procesarPosicion(e.touches[0]);
+                });
+
+                canvas.addEventListener("touchmove", (e) => {
+                    e.preventDefault(); // evita el scroll
+                    if (!dibujando) return;
+                    procesarPosicion(e.touches[0]);
+                });
+
+                canvas.addEventListener("touchend", () => {
+                    dibujando = false;
+                    input.value = patron.join("");
+                });
+
+                canvas.addEventListener("touchcancel", () => {
+                    if (dibujando) {
+                        dibujando = false;
+                        input.value = patron.join("");
+                    }
+                });
+
+                function procesarPosicion(e) {
+                    const rect = canvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+
+                    for (let i = 1; i <= 9; i++) {
+                        const { x: cx, y: cy } = positions[i];
+                        const distancia = Math.hypot(x - cx, y - cy);
+                        if (distancia <= r) {
+                            if (!patron.includes(i)) {
+                                // Si hay salto y el intermedio no está aún, lo agregamos primero
+                                const intermedio = SALTOS[`${patron[patron.length - 1]},${i}`];
+                                if (intermedio && !patron.includes(intermedio)) patron.push(intermedio);
+
+                                patron.push(i);
+                                dibujarGrid(canvas);
+                                dibujarPatron(patron.join(''), canvas, true);
+                            }
+                            break;
+                        }
+                    }
+                }
             }
         });
     });
@@ -104,10 +208,6 @@ async function validarForm() {
             }
             break;
 
-        case 'patron_dibujo':
-            alert('¡Funcionalidad no disponible por el momento!')
-            break;
-
         default:
             const i = parseInt(document.querySelector('input[name="patron"]').value, 10);
             if (COMPROBADOS.has(i)) break;
@@ -118,7 +218,10 @@ async function validarForm() {
     }
     document.getElementById('resetAll').disabled = document.getElementById('comprobar').disabled = '';
     document.body.style.cursor = '';
-    document.querySelectorAll('.tipogrp').forEach(div => div.querySelectorAll('input').forEach(input => input.value = ''));
+    document.querySelectorAll('.tipogrp').forEach(div => {
+        div.querySelectorAll('input').forEach(input => input.value = '');
+        div.querySelectorAll('canvas').forEach(canvas => dibujarGrid(canvas));
+    });
 }
 
 function resetAll() {
@@ -145,16 +248,6 @@ function esPatronValido(patron) {
     if (caracteresIlegales) return { valido: false, motivo: "Solo se pueden usar cifras del 1 al 9", conflicto: caracteresIlegales };
 
     const visitados = new Set();
-    const saltos = {
-        '1,3': 2, '3,1': 2,
-        '1,7': 4, '7,1': 4,
-        '3,9': 6, '9,3': 6,
-        '7,9': 8, '9,7': 8,
-        '1,9': 5, '9,1': 5,
-        '3,7': 5, '7,3': 5,
-        '2,8': 5, '8,2': 5,
-        '4,6': 5, '6,4': 5
-    };
 
     let anterior = patron[0];
     visitados.add(anterior);
@@ -166,8 +259,8 @@ function esPatronValido(patron) {
         }
 
         const clave = `${anterior},${actual}`;
-        if (saltos[clave] && !visitados.has(String(saltos[clave]))) {
-            return { valido: false, motivo: `No se puede saltar un número intermedio (${anterior}<span class="salto">${saltos[clave]}</span>${actual}) sin visitarlo`, conflicto: `${anterior}${actual}`};
+        if (SALTOS[clave] && !visitados.has(String(SALTOS[clave]))) {
+            return { valido: false, motivo: `No se puede saltar un número intermedio (${anterior}<span class="salto">${SALTOS[clave]}</span>${actual}) sin visitarlo`, conflicto: `${anterior}${actual}`};
         }
 
         visitados.add(actual);
@@ -280,16 +373,17 @@ function dibujarGrid(canvas, color = "#ccc") {
         ctx.arc(x, y, r, 0, Math.PI * 2);
         ctx.fillStyle = color;
         ctx.fill();
+        ctx.lineWidth = 2;
         ctx.strokeStyle = "#888";
         ctx.stroke();
     }
 }
 
-function dibujarPatron(patron, canvas) {
+function dibujarPatron(patron, canvas, permitirInvalido = false) {
     const { r, positions } = calcularCanvas(canvas);
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (!esPatronValido(patron).valido) {
+    if (!permitirInvalido && !esPatronValido(patron).valido) {
         dibujarGrid(canvas, 'salmon');
         return;
     }
