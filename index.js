@@ -23,7 +23,7 @@ window.onload = () => {
                 div.style.opacity = '';
                 div.style.position = '';
                 div.style.pointerEvents = '';
-                div.querySelectorAll('input').forEach(input => {
+                div.querySelectorAll('input:not([type="range"])').forEach(input => {
                     input.value = '';
                     input.required = '';
                 });
@@ -126,6 +126,14 @@ window.onload = () => {
                     }
                 }
             }
+            if (radio.value == 'patron_aleatorio') {
+                comprobarBtn.textContent = '🔀 Generar';
+                const longitud = selected.querySelector('input[name="patron_longitud"]');
+                const span = selected.querySelector('span');
+                longitud.addEventListener('input', function() {
+                    span.textContent = this.value;
+                });
+            }
         });
     });
     document.querySelectorAll('input[name="mostrar"]').forEach(radio => {
@@ -207,6 +215,18 @@ async function validarForm() {
                 await agregarPatron(`${i}`);
             }
             break;
+        
+        case 'patron_aleatorio':
+            const input = document.querySelector('#patron input[name="patron"]');
+            const longitud = document.querySelector('#patron_aleatorio input[name="patron_longitud"]').value;
+            const min = Math.pow(10, longitud - 1); // 10^(l-1), por ejemplo (l=5) => 10000
+            const max = Math.pow(10, longitud) - 1; // 10^l - 1, por ejemplo (l=5) => 99999
+
+            let patron;
+            do {
+                patron = Math.floor(Math.random() * (max - min + 1)) + min;
+            } while (!esPatronValido(`${patron}`).valido);
+            input.value = patron;
 
         default:
             const i = parseInt(document.querySelector('input[name="patron"]').value, 10);
@@ -219,7 +239,7 @@ async function validarForm() {
     document.getElementById('resetAll').disabled = document.getElementById('comprobar').disabled = '';
     document.body.style.cursor = '';
     document.querySelectorAll('.tipogrp').forEach(div => {
-        div.querySelectorAll('input').forEach(input => input.value = '');
+        div.querySelectorAll('input:not([type="range"])').forEach(input => input.value = '');
         div.querySelectorAll('canvas').forEach(canvas => dibujarGrid(canvas));
     });
 }
