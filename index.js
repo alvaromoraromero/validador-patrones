@@ -1,6 +1,52 @@
 const COMPROBADOS = new Set();
 const RECUENTO = {};
 
+const PRUEBASUNITARIAS = [
+    // [OK] Válidos
+    { patron: '1234', esValido: true },      // simple, sin saltos
+    { patron: '1245789', esValido: true },   // largo válido, sin saltos prohibidos
+    { patron: '241578963', esValido: true },  // largo válido, visita intermedios
+
+    // [ERR] Demasiado corto
+    { patron: '', esValido: false },
+    { patron: '1', esValido: false },
+    { patron: '12', esValido: false },
+    { patron: '123', esValido: false },
+
+    // [ERR] Demasiado largo
+    { patron: '1234567891', esValido: false },
+    { patron: '12345678912', esValido: false },
+
+    // [ERR] Caracteres no permitidos
+    { patron: '12a4', esValido: false },
+    { patron: '1*34', esValido: false },
+    { patron: '1024', esValido: false },
+    { patron: '-124', esValido: false },
+
+    // [ERR] Repetido
+    { patron: '1123', esValido: false },
+    { patron: '12321', esValido: false },
+
+    // [ERR] Salto prohibido (porque el intermedio no fue visitado)
+    { patron: '1369', esValido: false },       // salta el 2
+    { patron: '3147', esValido: false },       // salta el 2
+    { patron: '7123', esValido: false },       // salta el 4
+    { patron: '1789', esValido: false },       // salta el 4
+    { patron: '1987', esValido: false },       // salta el 5
+    { patron: '9147', esValido: false },       // salta el 5
+    { patron: '4698', esValido: false },       // salta el 5
+    { patron: '6412', esValido: false },       // salta el 5
+    { patron: '3741', esValido: false },       // salta el 5
+    { patron: '7321', esValido: false },       // salta el 5
+    { patron: '7963', esValido: false },       // salta el 8
+    { patron: '9753', esValido: false },       // salta el 8
+
+    // [OK] Otros válidos con intermedios visitados antes
+    { patron: '1253', esValido: true },      // visita 2 antes de 3
+    { patron: '1546', esValido: true },      // visita 5 antes de 9
+    { patron: '5376', esValido: true },      // visita 5 antes de saltar
+];
+
 const SALTOS = {
     '1,3': 2, '3,1': 2,
     '1,7': 4, '7,1': 4,
@@ -302,51 +348,58 @@ function agregarPatron(patron) {
             document.getElementById('mostrarValidosSpan').textContent = RECUENTO.valido;
             document.getElementById('mostrarInvalidosSpan').textContent = RECUENTO.invalido;
 
-            const mostrar = document.querySelector('input[name="mostrar"]:checked').value;
-            const vista = document.querySelector('select#vista').value.split("_");
-            const cuadricula_patron = (vista[0] == 'cuadricula' && typeof vista[2] !== 'undefined');
 
             const p = document.createElement('p');
-            const canvas = document.createElement('canvas');
-            canvas.width = 150;
-            canvas.height = 150;
-            canvas.style.zoom = '.4';
-            canvas.style.display = cuadricula_patron ? '' : 'none';
-            p.append(canvas);
-            dibujarPatron(patron, canvas);
-
-            const ojoVisualizar = document.createElement('a');
-            ojoVisualizar.className = 'validez';
-            ojoVisualizar.textContent = '👁️';
-            ojoVisualizar.addEventListener('click', () => mostrarDialogPatron(patron));
-            ojoVisualizar.style.cursor = 'pointer';
-            ojoVisualizar.title = 'Visualizar patrón';
-            ojoVisualizar.style.display = cuadricula_patron ? 'none' : '';
-
-            const spanValidez = document.createElement('span');
-            spanValidez.className = 'validez';
-            spanValidez.textContent = resultado.valido ? '✅' : '❌';
-
-            const spanMotivo = document.createElement('span');
-            spanMotivo.className = 'motivo';
-            spanMotivo.innerHTML = `${resultado.motivo}.`;
-            spanMotivo.style.display = document.getElementById('motivos').checked ? '' : 'none';
-
-            const div = document.createElement('div');
-            div.innerHTML = `${patron.replaceAll(resultado.conflicto, `<span class="conflicto" style="text-decoration-line: ${document.getElementById('motivos').checked ? 'spelling-error' : 'none'};">${resultado.conflicto}</span>`)}`;
-            div.append(spanValidez);
-            p.append(ojoVisualizar);
-            p.append(div);
-            p.append(spanMotivo);
-            p.className = resultado.valido ? 'valido' : 'invalido';
-            p.style.display = (!resultado.valido && mostrar=="1" || resultado.valido && mostrar=="2") ? 'none' : '';
-            p.style.flexDirection = cuadricula_patron ? 'column' : '';
+            rellenarParrafoPatron(p, patron, resultado);
             document.getElementById('patrones').prepend(p);
 
             if (velocidad > 0) resolve();
         }, velocidad);
         if (velocidad == 0) resolve();
     });
+}
+
+function rellenarParrafoPatron(p, patron, resultado, config={}) {
+    const mostrar = config.mostrar ?? document.querySelector('input[name="mostrar"]:checked').value;
+    const mostrarMotivos = config.motivos ?? document.getElementById('motivos').checked;
+    const vista = (config.vista ?? document.querySelector('select#vista').value).split("_");
+    const cuadricula_patron = (vista[0] == 'cuadricula' && typeof vista[2] !== 'undefined');
+    console.log(mostrar, vista, cuadricula_patron);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = 150;
+    canvas.height = 150;
+    canvas.style.zoom = '.4';
+    canvas.style.display = cuadricula_patron ? '' : 'none';
+    p.append(canvas);
+    dibujarPatron(patron, canvas);
+
+    const ojoVisualizar = document.createElement('a');
+    ojoVisualizar.className = 'validez';
+    ojoVisualizar.textContent = '👁️';
+    ojoVisualizar.addEventListener('click', () => mostrarDialogPatron(patron));
+    ojoVisualizar.style.cursor = 'pointer';
+    ojoVisualizar.title = 'Visualizar patrón';
+    ojoVisualizar.style.display = cuadricula_patron ? 'none' : '';
+
+    const spanValidez = document.createElement('span');
+    spanValidez.className = 'validez';
+    spanValidez.textContent = resultado.valido ? '✅' : '❌';
+
+    const spanMotivo = document.createElement('span');
+    spanMotivo.className = 'motivo';
+    spanMotivo.innerHTML = `${resultado.motivo}.`;
+    spanMotivo.style.display = mostrarMotivos ? '' : 'none';
+
+    const div = document.createElement('div');
+    div.innerHTML = `${patron.replaceAll(resultado.conflicto, `<span class="conflicto" style="text-decoration-line: ${mostrarMotivos ? 'spelling-error' : 'none'};">${resultado.conflicto}</span>`)}`;
+    div.append(spanValidez);
+    p.append(ojoVisualizar);
+    p.append(div);
+    p.append(spanMotivo);
+    p.className = resultado.valido ? 'valido' : 'invalido';
+    p.style.display = (!resultado.valido && mostrar=="1" || resultado.valido && mostrar=="2") ? 'none' : '';
+    p.style.flexDirection = cuadricula_patron ? 'column' : '';
 }
 
 function mostrarDialogPatron(patron) {
@@ -360,6 +413,51 @@ function mostrarDialogPatron(patron) {
     dibujarPatron(patron, canvas);
 
     dialogPatron.showModal();
+}
+
+function mostrarDialogPruebasUnitarias() {
+    const dialogPruebasUnitarias = document.getElementById('dialogPruebasUnitarias');
+    dialogPruebasUnitarias.innerHTML = '';
+
+    const divPatrones = document.createElement('div');
+    divPatrones.id = 'patrones';
+    divPatrones.style.flexDirection = 'column';
+    const resultadosPruebas = cargarPruebasUnitarias(divPatrones);
+    dialogPruebasUnitarias.append(divPatrones);
+
+    const p = document.createElement('p');
+    p.style.margin = '10px';
+    p.innerHTML = `De un total de ${PRUEBASUNITARIAS.length} pruebas unitarias:<br><ul><li>${resultadosPruebas.validos} fueron realizadas correctamente.</li><li>${resultadosPruebas.invalidos} devolvieron error.</li><li>${resultadosPruebas.omitidos} fueron omitidas.</li></ul>`;
+    dialogPruebasUnitarias.prepend(p);
+
+    dialogPruebasUnitarias.showModal();
+}
+
+function cargarPruebasUnitarias(divPatrones) {
+    const resultadosPruebas = {validos: 0, invalidos:0, omitidos: 0};
+    PRUEBASUNITARIAS.forEach(pruebaUnitaria => {
+        const patron = pruebaUnitaria.patron;
+        const resultado = esPatronValido(patron)
+        const p = document.createElement('p');
+        rellenarParrafoPatron(p, patron, resultado, {mostrar: 0, motivos: true, vista: 'lista'});
+        if (pruebaUnitaria.habilitado === false) {
+            resultadosPruebas.omitidos++;
+            p.style.backgroundColor = '#cccccc';
+            p.append('Test omitido (deshabilitado).');
+        }
+        else if (pruebaUnitaria.esValido!=resultado.valido) {
+            resultadosPruebas.invalidos++;
+            p.style.backgroundColor = '#ffcccc';
+            const motivoFalloTest = document.createElement('span');
+            motivoFalloTest.textContent = `El test esperaba que el patron fuese ${pruebaUnitaria.esValido ? '' : 'in'}válido.`;
+            p.append(motivoFalloTest);
+        } else {
+            resultadosPruebas.validos++;
+            p.style.backgroundColor = '#ccffcc';
+        }
+        divPatrones.append(p);
+    });
+    return resultadosPruebas;
 }
 
 function calcularCanvas(canvas) {

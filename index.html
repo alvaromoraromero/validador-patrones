@@ -8,7 +8,7 @@
     <script type="text/javascript" src="index.js"></script>
 </head>
 <body>
-    <h1>Validador patrones</h1>
+    <h1>Validador patrones <button onclick="mostrarDialogPruebasUnitarias()">🧪 Lanzar pruebas unitarias</button></h1>
     <p><button disabled id="resetAll" onclick="resetAll()">🗑️ Resetear</button> Se han validado un total de <span id="totalInicio">0</span>/<span id="totalFin">0</span> patrones. (<span id="totalV">0</span> ✅ | <span id="totalF">0</span> ❌)</p>
     <form onsubmit="validarForm(); return false;">
         <div><p>Velocidad </p><input value="0" min="0" max="1000" step="10" type="range" name="velocidad" id="velocidad"><span id="velocidadSpan">lo más rápido posible</span></div>
@@ -54,5 +54,6 @@
     </form>
     <dialog id="dialogPatron" closedby="any"></dialog>
     <div id="patrones" style="flex-direction: column;"></div>
+    <dialog id="dialogPruebasUnitarias" closedby="any"></dialog>
 </body>
 </html>
