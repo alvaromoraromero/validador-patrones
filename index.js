@@ -273,14 +273,13 @@ async function validarForm() {
                 patron = Math.floor(Math.random() * (max - min + 1)) + min;
             } while (!esPatronValido(`${patron}`).valido);
             input.value = patron;
-
-        default:
-            const i = parseInt(document.querySelector('input[name="patron"]').value, 10);
-            if (COMPROBADOS.has(i)) break;
-            else COMPROBADOS.add(i);
-            RECUENTO.fin++;
-            await agregarPatron(`${i}`);
             break;
+    }
+    const i = parseInt(document.querySelector('input[name="patron"]').value, 10);
+    if (!isNaN(i) && !COMPROBADOS.has(i)) {
+        COMPROBADOS.add(i);
+        RECUENTO.fin++;
+        await agregarPatron(`${i}`);
     }
     document.getElementById('resetAll').disabled = document.getElementById('comprobar').disabled = '';
     document.body.style.cursor = '';
