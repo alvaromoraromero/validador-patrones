@@ -101,7 +101,6 @@ window.onload = () => {
                 dibujarGrid(canvas);
 
                 canvas.addEventListener("mousedown", (e) => {
-                    patron = [];
                     dibujando = true;
                     procesarPosicion(e);
                 });
@@ -113,20 +112,25 @@ window.onload = () => {
 
                 canvas.addEventListener("mouseup", () => {
                     dibujando = false;
-                    input.value = patron.join("");
+                    if (patron.length > 3) input.value = patron.join("");
+                    else {
+                        input.value = "";
+                        dibujarGrid(canvas, 'salmon');
+                        setTimeout(() => dibujarGrid(canvas), 500);
+                    }
+                    patron = [];
                 });
 
-                canvas.addEventListener("mouseleave", () => {
+                /*canvas.addEventListener("mouseleave", () => {
                     if (dibujando) {
                         dibujando = false;
                         input.value = patron.join("");
                     }
-                });
+                });*/
 
                 // Eventos táctiles
                 canvas.addEventListener("touchstart", (e) => {
                     e.preventDefault(); // evita el scroll
-                    patron = [];
                     dibujando = true;
                     procesarPosicion(e.touches[0]);
                 });
@@ -139,15 +143,21 @@ window.onload = () => {
 
                 canvas.addEventListener("touchend", () => {
                     dibujando = false;
-                    input.value = patron.join("");
+                    if (patron.length > 3) input.value = patron.join("");
+                    else {
+                        input.value = "";
+                        dibujarGrid(canvas, 'salmon');
+                        setTimeout(() => dibujarGrid(canvas), 500);
+                    }
+                    patron = [];
                 });
 
-                canvas.addEventListener("touchcancel", () => {
+                /*canvas.addEventListener("touchcancel", () => {
                     if (dibujando) {
                         dibujando = false;
                         input.value = patron.join("");
                     }
-                });
+                });*/
 
                 function procesarPosicion(e) {
                     const rect = canvas.getBoundingClientRect();
