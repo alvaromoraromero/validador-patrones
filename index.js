@@ -151,8 +151,8 @@ window.onload = () => {
 
                 function procesarPosicion(e) {
                     const rect = canvas.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
+                    const x = (e.clientX - rect.left) * canvas.width / rect.width;
+                    const y = (e.clientY - rect.top) * canvas.height / rect.height;
 
                     for (let i = 1; i <= 9; i++) {
                         const { x: cx, y: cy } = positions[i];
@@ -364,7 +364,6 @@ function rellenarParrafoPatron(p, patron, resultado, config={}) {
     const mostrarMotivos = config.motivos ?? document.getElementById('motivos').checked;
     const vista = (config.vista ?? document.querySelector('select#vista').value).split("_");
     const cuadricula_patron = (vista[0] == 'cuadricula' && typeof vista[2] !== 'undefined');
-    console.log(mostrar, vista, cuadricula_patron);
 
     const canvas = document.createElement('canvas');
     canvas.width = 150;
